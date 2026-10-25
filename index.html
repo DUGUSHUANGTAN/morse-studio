@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>Morse Studio</title>
+<style>
+:root{--bg:#000;--panel:#050a05;--green:#00ff41;--green2:#39d353;--dim:#789b7f;--ink:#d7ffe0;--dark:#0b3d16;--line:rgba(0,255,65,.2);--red:#ff5555;--mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
+*{box-sizing:border-box}html{min-height:100%;background:#000}body{margin:0;min-height:100vh;color:var(--ink);font-family:var(--mono);font-size:13px;line-height:1.5;overflow-x:hidden}button,textarea{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.45}button:focus-visible,textarea:focus-visible{outline:2px solid var(--green);outline-offset:3px}::selection{background:#12602a;color:#e7ffee}
+#rain{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:.68}.veil{position:fixed;inset:0;pointer-events:none;z-index:1;background:radial-gradient(ellipse at 48% 35%,rgba(0,35,6,.12),rgba(0,0,0,.74) 85%)}.scan{position:fixed;inset:0;z-index:4;pointer-events:none;opacity:.075;background:repeating-linear-gradient(0deg,transparent 0,transparent 3px,rgba(0,0,0,.4) 4px);background-size:100% 4px}
+.shell{position:relative;z-index:2;width:min(1460px,calc(100% - 72px));margin:0 auto;min-height:100vh;display:flex;flex-direction:column}.topbar{margin-top:32px;border:1px solid var(--line);background:rgba(2,8,3,.94);box-shadow:0 12px 50px rgba(0,0,0,.5),inset 0 1px rgba(83,255,114,.06);display:flex;align-items:center;min-height:66px;gap:28px;padding:12px 23px;position:relative}.topbar:before{content:"";position:absolute;left:0;top:0;width:110px;height:1px;background:var(--green)}.window-dots{display:flex;align-items:center;gap:7px;flex-shrink:0}.window-dots span{width:9px;height:9px;border-radius:50%;border:1px solid #33583a;background:#0b2111}.window-dots span:first-child{background:#235629}.window-dots span:nth-child(2){background:#142b19}.brand{white-space:nowrap;font-weight:750;font-size:15px;letter-spacing:.12em;color:var(--green);text-shadow:0 0 16px rgba(0,255,65,.32)}.brand b{margin-right:11px;color:#b4ffc0}.topstatus{margin-left:auto;display:flex;align-items:center;gap:26px;flex-wrap:wrap;color:var(--dim);font-size:10px;letter-spacing:.09em}.topstatus strong{color:var(--green2);font-weight:650}.led{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);margin-right:7px}.toolbar{display:flex;gap:6px;align-items:center}.tiny-btn,.action-btn,.swap-btn,.run-tests,.dialog-close{border:1px solid var(--line);background:rgba(5,20,8,.72);color:var(--ink);border-radius:3px;transition:border-color .18s,background .18s,color .18s,box-shadow .18s}.tiny-btn:hover,.action-btn:hover,.swap-btn:hover,.run-tests:hover,.dialog-close:hover{border-color:var(--green2);background:rgba(13,49,20,.8);color:#fff;box-shadow:0 0 15px rgba(0,255,65,.075)}.tiny-btn{padding:8px 9px;white-space:nowrap;font-size:10px;letter-spacing:.06em}.tiny-btn[aria-pressed=true]{color:var(--green);border-color:rgba(0,255,65,.44)}
+.intro{padding:67px 2px 38px;display:flex;align-items:flex-end;justify-content:space-between;gap:24px}.eyebrow{font-size:11px;color:var(--green2);letter-spacing:.22em;margin-bottom:15px}.intro h1{font-size:clamp(32px,4.4vw,60px);line-height:1.03;letter-spacing:-.075em;margin:0;font-weight:700;color:#f0fff2}.intro h1 span{color:var(--green);text-shadow:0 0 24px rgba(0,255,65,.18)}.intro p{margin:20px 0 0;color:#8aa88f;max-width:720px;font-size:12px;letter-spacing:.015em;line-height:1.8}.intro-right{color:var(--dim);font-size:10px;text-align:right;white-space:nowrap;line-height:2.2;letter-spacing:.07em}.intro-right .rule{color:var(--green2)}
+.workspace-head{display:flex;justify-content:space-between;align-items:center;gap:16px;margin:0 0 12px;color:var(--dim);font-size:10px;letter-spacing:.15em}.workspace-head .tag{color:var(--green2)}.workspace{display:grid;grid-template-columns:minmax(0,1fr) 84px minmax(0,1fr);gap:10px;min-height:440px}.editor{background:rgba(2,8,3,.94);border:1px solid var(--line);display:flex;flex-direction:column;min-width:0;position:relative;box-shadow:0 18px 70px rgba(0,0,0,.46)}.editor:focus-within{border-color:rgba(0,255,65,.57);box-shadow:0 0 0 1px rgba(0,255,65,.06),0 18px 70px rgba(0,0,0,.46)}.editor:before{content:"";position:absolute;left:-1px;top:-1px;width:34px;height:2px;background:var(--green2)}.editor-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:17px 18px;border-bottom:1px solid var(--line);min-height:70px}.editor-title{display:flex;align-items:center;gap:11px;min-width:0}.num{font-size:10px;color:var(--green2);border:1px solid rgba(0,255,65,.3);padding:4px 6px}.editor-title h2{font-weight:650;font-size:12px;letter-spacing:.12em;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.editor-head-actions{display:flex;gap:5px;align-items:center;flex-wrap:wrap;justify-content:flex-end}.action-btn{padding:7px 8px;min-width:53px;font-size:10px}.action-btn[data-flash=true]{color:var(--green)}.editor-code{flex:1;display:flex;position:relative;min-height:280px}.editor-code:before{content:">";position:absolute;left:20px;top:17px;color:rgba(57,211,83,.35);font-size:13px;line-height:25px;pointer-events:none}.editor-code{overflow:hidden}.editor textarea{resize:vertical;width:100%;min-height:280px;flex:1;line-height:25px;letter-spacing:.018em;padding:17px 18px 20px 61px;color:#d7ffe0;background:transparent;border:0;outline:none;font-size:13px;overflow:auto;tab-size:4;caret-color:var(--green)}.editor textarea::placeholder{color:#49694e;opacity:1}.editor textarea:focus-visible{outline:none}.editor[data-role="morse"] textarea{color:#97ffa8;letter-spacing:.055em;word-break:break-all}.editor-footer{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:13px 18px;border-top:1px solid var(--line);font-size:10px;color:var(--dim);white-space:nowrap}.editor-footer strong{font-weight:500;color:var(--green2)}.slot-state{overflow:hidden;text-overflow:ellipsis}
+.center-controls{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}.direction-label{font-size:9px;color:var(--dim);text-align:center;line-height:1.9;letter-spacing:.12em}.direction-label strong{display:block;color:var(--green2);font-weight:600;white-space:nowrap}.transfer-lines{height:28px;width:1px;background:linear-gradient(transparent,var(--dark),transparent)}.swap-btn{width:50px;height:50px;display:grid;place-items:center;color:var(--green);border-color:rgba(0,255,65,.35);border-radius:50%;background:rgba(1,9,3,.95)}.swap-btn svg{width:20px;height:20px}.conversion-arrow{font-size:19px;line-height:1;color:var(--green);text-shadow:0 0 15px rgba(0,255,65,.4)}.conversion-arrow[aria-label="right to left"]{transform:rotate(180deg)}
+.workbench-meta{padding:19px 2px;display:flex;align-items:center;justify-content:space-between;gap:14px;color:var(--dim);font-size:10px;letter-spacing:.025em}.workbench-meta .green{color:var(--green2)}.workbench-meta kbd{border:1px solid #184a23;background:#061008;font:inherit;padding:2px 5px;color:#9bba9f}.workbench-meta button{background:none;border:0;color:var(--green2);font:inherit;padding:4px 0;cursor:pointer}.workbench-meta button:hover{text-decoration:underline}
+.telemetry{margin-top:13px;border:1px solid var(--line);background:rgba(0,7,2,.95);min-height:108px;padding:19px 24px;display:flex;flex-direction:column;justify-content:center;gap:18px;position:relative}.telemetry:after{content:"";width:4px;height:4px;background:var(--green);position:absolute;right:-2px;bottom:-2px;box-shadow:0 0 10px var(--green)}.telemetry-head{display:flex;align-items:center;justify-content:space-between;color:var(--dim);font-size:10px;letter-spacing:.15em}.telemetry-head .live{color:var(--green2);display:flex;align-items:center;gap:7px}.readouts{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}.metric{border-left:1px solid #17451e;padding-left:13px;min-width:0}.metric:first-child{border-color:var(--green)}.metric .value{color:var(--ink);font-size:17px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}.metric .key{font-size:9px;letter-spacing:.12em;color:var(--dim);margin-top:4px}.metric .value.ok{color:var(--green2)}.metric .value.error{color:var(--red)}
+.console{display:flex;align-items:flex-start;gap:10px;margin:16px 0 0;color:var(--dim);font-size:11px;min-height:40px;line-height:1.7;overflow-wrap:anywhere}.console .prompt{color:var(--green)}.console[data-status="error"]{color:var(--red)}.console[data-status="error"] .prompt{color:var(--red)}.console[data-status="working"]{color:var(--ink)}.cursor{display:inline-block;width:6px;height:12px;vertical-align:-2px;margin-left:5px;background:var(--green2);animation:blink 1.2s steps(1,end) infinite}@keyframes blink{50%{opacity:0}}.footer{margin-top:auto;padding:50px 0 30px;display:flex;gap:20px;align-items:center;justify-content:space-between;font-size:10px;color:#63826a;letter-spacing:.06em}.footer span:last-child{color:var(--green2)}
+.toast{position:fixed;bottom:28px;left:50%;transform:translate(-50%,15px);background:#06170a;border:1px solid var(--green2);color:var(--ink);padding:11px 18px;z-index:10;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;max-width:min(90vw,580px);box-shadow:0 15px 45px #000}.toast.show{opacity:1;transform:translate(-50%,0)}.toast.error{border-color:var(--red);color:#ffbaba}
+dialog{width:min(710px,calc(100vw - 30px));max-height:min(86vh,850px);overflow:auto;color:var(--ink);background:#030b05;border:1px solid rgba(0,255,65,.45);box-shadow:0 30px 120px #000;padding:0}dialog::backdrop{background:rgba(0,0,0,.86);backdrop-filter:blur(4px)}.dialog-head{padding:22px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}.dialog-head h2{margin:0;color:var(--green);font-size:16px;letter-spacing:.1em}.dialog-close{padding:7px 12px}.dialog-content{padding:24px;font-size:12px;line-height:1.9;color:#b4ccb9}.dialog-content h3{color:var(--green2);font-size:12px;margin:23px 0 6px}.dialog-content h3:first-child{margin-top:0}.dialog-content code{color:#a9ffb3;background:#0a1c0e;padding:2px 5px;overflow-wrap:anywhere}.dialog-content p{margin:8px 0 12px}.dialog-content ul{padding-left:19px}.dialog-content li{margin:4px 0}.run-tests{padding:10px 16px;margin:7px 0 14px;color:var(--green2)}.test-output{max-height:240px;overflow:auto;white-space:pre-wrap;font-size:10px;border:1px solid var(--line);padding:12px;line-height:1.7;background:#000;tab-size:2;color:#a3bfa9}
+@media(max-width:1100px){.shell{width:min(100% - 40px,1460px)}.topbar{gap:16px}.topstatus{gap:12px}.intro{padding-top:53px}.editor-head{padding:15px 11px}.editor-title{gap:7px}.action-btn{min-width:43px;padding:6px}.readouts{grid-template-columns:repeat(3,1fr);row-gap:20px}.workspace{grid-template-columns:minmax(0,1fr) 60px minmax(0,1fr)}.center-controls{gap:8px}}
+@media(max-width:740px){.shell{width:calc(100% - 26px)}.topbar{margin-top:12px;padding:13px 12px;gap:12px;flex-wrap:wrap}.brand{font-size:12px}.window-dots{display:none}.topstatus{order:3;width:100%;justify-content:space-between;margin:0;font-size:9px}.toolbar{margin-left:auto}.tiny-btn{padding:7px;font-size:9px}.intro{padding:39px 2px 28px}.intro h1{font-size:36px}.intro p{font-size:11px}.intro-right{display:none}.workspace{display:flex;flex-direction:column;min-height:0;gap:8px}.editor{min-height:300px}.editor-code{min-height:218px}.editor textarea{min-height:218px}.center-controls{flex-direction:row;min-height:62px;gap:14px}.transfer-lines{height:1px;width:26px;background:linear-gradient(90deg,transparent,var(--dark),transparent)}.swap-btn{width:42px;height:42px}.editor-footer{padding:10px 13px}.workbench-meta{align-items:flex-start;flex-direction:column;line-height:1.6}.telemetry{padding:17px}.readouts{grid-template-columns:repeat(3,minmax(0,1fr))}.metric .value{font-size:14px}.footer{padding-top:25px;line-height:1.7;align-items:flex-start;flex-direction:column;gap:4px}.toolbar button{font-size:9px}}
+@media(max-width:370px){.brand{letter-spacing:.035em}.toolbar{gap:3px}.tiny-btn{padding:6px 5px}.readouts{grid-template-columns:repeat(2,1fr)}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.001ms!important;scroll-behavior:auto!important;transition-duration:.001ms!important}}
+
+/* Revision: stronger, classic Matrix backdrop and compact language / signal controls. */
+#rain{opacity:.97}
+.veil{background:radial-gradient(ellipse at 50% 45%,rgba(0,0,0,.19),rgba(0,0,0,.46) 88%)}
+.topbar{gap:16px;padding-inline:18px}
+.topstatus{gap:15px;margin-left:auto}
+.toolbar{gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.mode-control{display:inline-flex;align-items:center;gap:7px;color:var(--dim);font-size:10px;letter-spacing:.04em;white-space:nowrap}
+.mode-control .mode-toggle{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-width:82px;padding:7px 9px;color:var(--green2);border:1px solid rgba(0,255,65,.34);border-radius:3px;background:#041208;font:inherit;letter-spacing:.045em;cursor:pointer;transition:background .18s,border-color .18s,box-shadow .18s}
+.mode-control .mode-toggle:hover{border-color:var(--green);background:#0b2312;box-shadow:0 0 12px rgba(0,255,65,.1)}
+.mode-control .mode-toggle:active{background:#164521}
+.mode-control .mode-toggle:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.mode-switch-arrow{color:var(--dim);font-size:13px;line-height:1}
+.mode-control .mode-toggle[aria-pressed="true"]{border-color:rgba(57,211,83,.55)}
+.locale-panel[hidden]{display:none!important}
+@media (max-width:1200px){.topbar{flex-wrap:wrap}.topstatus{margin-left:0}.toolbar{margin-left:auto}}
+@media (max-width:740px){.topbar{justify-content:space-between}.toolbar{width:100%;order:2;justify-content:flex-end}.topstatus{order:3;gap:8px}.mode-control{margin-right:auto}.editor-head-actions{gap:4px}.editor-head{flex-wrap:wrap}.editor-head-actions{margin-left:auto}.action-btn{padding:6px 7px}}
+@media (max-width:420px){.toolbar{gap:5px}.mode-control{font-size:9px}.tiny-btn{padding:6px 7px}.editor-head-actions .action-btn{font-size:9px;padding:6px}}
+.intro p{text-shadow:0 1px 5px #000,0 0 12px #000;color:#a7cdb0}
+</style>
+</head>
+<body>
+<canvas id="rain" aria-hidden="true"></canvas><div class="veil" aria-hidden="true"></div><div class="scan" aria-hidden="true"></div>
+<main class="shell">
+<header class="topbar">
+  <div class="window-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+  <div class="brand"><b>&gt;_</b>MORSE STUDIO</div>
+  <div class="topstatus"><span><span data-i18n="protocolLabel">PROTOCOL</span>: <strong>UTF-8 HEX</strong></span><span><i class="led" aria-hidden="true"></i><span data-i18n="statusLabel">STATUS</span>: <strong id="top-ready">READY</strong></span><span data-i18n="local">LOCAL / OFFLINE</span></div>
+  <div class="toolbar">
+    <div class="mode-control"><span data-i18n="format">SYMBOLS</span><button type="button" class="mode-toggle" id="signal-mode" aria-label="Switch signal format" aria-pressed="false" title="Click to toggle Morse notation"><span id="signal-current">· —</span><span class="mode-switch-arrow" aria-hidden="true">⇄</span></button></div>
+    <button type="button" class="tiny-btn" id="lang-toggle" aria-label="Switch language" title="Switch language">中文</button>
+    <button type="button" class="tiny-btn" id="rain-toggle" aria-pressed="true" title="切换代码雨">RAIN ON</button>
+    <button type="button" class="tiny-btn" id="about-btn" aria-label="查看协议说明" data-i18n="aboutButton">协议说明 ↗</button>
+  </div>
+</header>
+<section class="intro" aria-label="Introduction"><div><div class="eyebrow">// UNICODE · MORSE · TERMINAL</div><h1>Signals<span> into</span> meaning.</h1><p data-i18n="intro">输入文字即可生成摩斯密码；输入摩斯密码即可还原原文。支持标准国际摩斯码及完整 Unicode 无损转换，所有处理均在本地完成。</p></div><div class="intro-right"><span class="rule">[ ENCODING ≠ ENCRYPTION ]</span><br>LOSSLESS TEXT TRANSCODING<br>CLIENT-SIDE PROCESSING<br>VERSION 02.00</div></section>
+<div class="workspace-head"><span><span data-i18n="workspace">工作区</span> <span class="tag" data-i18n="realtime">/ 实时双向转换</span></span><span>UTF-8 HEX &nbsp; ● &nbsp; UTF-8 SAFE</span></div>
+<section class="workspace" aria-label="Morse converter">
+  <article class="editor" id="editor-0" data-role="plain"><div class="editor-head"><div class="editor-title"><span class="num">01</span><h2 id="title-0">原始文本</h2></div><div class="editor-head-actions"><button class="action-btn" data-copy="0" data-i18n="copy">复制</button><button class="action-btn" data-paste="0" data-i18n="paste">粘贴</button><button class="action-btn" data-clear="0" data-i18n="clear">清空</button></div></div><div class="editor-code"><textarea id="area-0" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="原始文本编辑器"></textarea></div><div class="editor-footer"><span id="count-0">0 字符</span><span class="slot-state" id="state-0">[ 输入 ]</span><span id="pos-0">行 1 : 列 1</span></div></article>
+  <div class="center-controls"><span class="direction-label"><span data-i18n="direction">方向</span><strong id="direction-name">编码</strong></span><div class="transfer-lines" aria-hidden="true"></div><div class="conversion-arrow" id="direction-arrow" aria-hidden="true">→</div><button type="button" class="swap-btn" id="swap-btn" aria-label="交换两个编辑器" title="交换编辑器和转换方向"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" aria-hidden="true"><path d="M4 7h15m-4-4 4 4-4 4M20 17H5m4-4-4 4 4 4"/></svg></button><div class="transfer-lines" aria-hidden="true"></div><span class="direction-label"><span data-i18n="live">实时</span><strong id="direction-live" data-i18n="auto">自动</strong></span></div>
+  <article class="editor" id="editor-1" data-role="morse"><div class="editor-head"><div class="editor-title"><span class="num">02</span><h2 id="title-1">摩斯输出</h2></div><div class="editor-head-actions"><button class="action-btn" data-copy="1" data-i18n="copy">复制</button><button class="action-btn" data-paste="1" data-i18n="paste">粘贴</button><button class="action-btn" data-clear="1" data-i18n="clear">清空</button></div></div><div class="editor-code"><textarea id="area-1" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="摩斯密码编辑器"></textarea></div><div class="editor-footer"><span id="count-1">0 信号</span><span class="slot-state" id="state-1">[ 输出 ]</span><span id="pos-1">行 1 : 列 1</span></div></article>
+</section>
+<div class="workbench-meta"><span data-i18n="compatibility">支持外部标准摩斯解码、旧版 MSM-1、UTF-8 HEX 无损还原；不执行文本规范化。</span><span><button type="button" id="clear-all" data-i18n="clearAll">[ 全部清空 ]</button> &nbsp; <button type="button" id="test-btn" data-i18n="runTests">[ 自检 ]</button> &nbsp; <kbd>Ctrl</kbd> + <kbd>V</kbd> <span data-i18n="pasteHint">粘贴</span></span></div>
+<section class="telemetry" aria-label="Telemetry"><div class="telemetry-head"><span data-i18n="telemetry">/// 实时状态 / 诊断信息</span><span class="live"><i class="led" aria-hidden="true"></i><span id="live-label">READY</span></span></div><div class="readouts">
+  <div class="metric"><div class="value" id="stat-chars">0</div><div class="key" data-i18n="codepoints">UNICODE 字符</div></div>
+  <div class="metric"><div class="value" id="stat-bytes">0</div><div class="key" data-i18n="bytes">UTF-8 字节</div></div>
+  <div class="metric"><div class="value" id="stat-signals">0</div><div class="key" data-i18n="signals">点划信号数</div></div>
+  <div class="metric"><div class="value" id="stat-time">0.00 ms</div><div class="key" data-i18n="elapsed">转换时间</div></div>
+  <div class="metric"><div class="value" id="stat-protocol">UTF-8 HEX</div><div class="key" data-i18n="detected">检测协议</div></div>
+  <div class="metric"><div class="value ok" id="stat-result">READY</div><div class="key" data-i18n="conversion">转换状态</div></div>
+</div></section>
+<div class="console" id="console" data-status="ok" role="status" aria-live="polite"><span class="prompt">root@morse:~$</span><span id="console-message">Initializing codec...</span><span class="cursor" aria-hidden="true"></span></div>
+<footer class="footer"><span data-i18n="footer">© MORSE STUDIO · 所有处理均在本地进行 · 无跟踪</span><span>UTF-8 HEX / ITU MORSE / OFFLINE</span></footer>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<dialog id="about"><div class="dialog-head"><h2 data-i18n="aboutTitle">&gt;_ 编码格式与兼容说明</h2><button type="button" id="close-about" class="dialog-close" data-i18n="close">关闭 ×</button></div><div class="dialog-content">
+  <div class="locale-panel" id="about-zh" lang="zh-CN">
+    <h3>01 / 为什么要有协议头？</h3><p>国际摩斯码本身仅定义有限的字母、数字和标点，不定义中文、Emoji 和大小写。要无损还原任意文本，就必须约定一种可逆格式。新版 UTF-8 HEX 不再使用需要专门学习的字节控制串，而是采用<strong>通用 UTF-8 + 十六进制（HEX）</strong>。</p>
+    <h3>02 / 无附加提示词的自描述编码</h3><p>原文按 Unicode 码点分别转换为 UTF-8 字节，每个字节写成两个大写十六进制字符，码点之间用空格分组。例如：<code>MORSE UTF8 HEX E4BDA0 E5A5BD</code>（表示“你好”）。然后使用标准国际摩斯映射，字符之间加空格，单词之间加 <code>/</code>。标准摩斯解码器可以读取对应的 ASCII 中间串，再将 HEX 字节拼接并按 UTF-8 还原。<strong>复制按钮只复制摩斯码，不附带任何解码提示词。</strong></p>
+    <h3>03 / 0 和 1 模式</h3><p>经典模式以 <code>.</code> 表示点、<code>-</code> 表示划；二进制显示模式以 <code>0</code> 表示点、<code>1</code> 表示划。其他字符分隔空格、词间 <code>/</code> 完全相同。<strong>0/1 是摩斯符号的可逆替换，不是字符的 ASCII/Unicode 二进制编码。</strong>解码器能自动识别两种点划写法，但混合使用会报错。</p>
+    <h3>04 / 兼容边界与旧版数据</h3><p>可以直接粘贴外部普通摩斯进行解码，例如 <code>.... . .-.. .-.. --- / .-- --- .-. .-.. -..</code>。对于可无损使用标准摩斯表示的全大写英文、数字、常见标点和单个词间空格，直接输出普通国际摩斯，不添加头部。其他文本使用 <code>MORSE UTF8 HEX ...</code> 自描述格式。普通网站只会还原成这一中间字符串，不会自动还原 Unicode。历史 <code>MSM1</code> 和 <code>MSM2 UTF8 HEX</code> 数据仍能在本工具解码；已识别的损坏头部会报错。</p>
+    <h3>05 / 无损边界</h3><p>不执行大小写规范化、Unicode 归一化或换行转换。内部保留 CRLF、LF、CR，Emoji 组合序列与组合音标。浏览器文本框可把 CRLF 显示为 LF，复制时仍使用内部原文；在编辑已存在 CRLF 的文本时保留未修改的换行。孤立 UTF-16 代理项不是有效 Unicode，会明确报错。</p>
+  </div>
+  <div class="locale-panel" id="about-en" lang="en" hidden>
+    <h3>01 / WHY IS A WRAPPER NECESSARY?</h3><p>International Morse code defines a limited set of letters, digits, and punctuation. It does not define Chinese characters, emoji, or letter case. A reversible container is therefore necessary for lossless Unicode. UTF-8 HEX uses familiar <strong>UTF-8 and hexadecimal</strong> instead of proprietary data escapes.</p>
+    <h3>02 / SELF-DESCRIBING INTERMEDIATE FORMAT</h3><p>Each Unicode code point becomes UTF-8 bytes represented by uppercase hexadecimal digits, with spaces between code points. For example: <code>MORSE UTF8 HEX E4BDA0 E5A5BD</code>. Every intermediate character is mapped to standard Morse, separated by spaces, with <code>/</code> separating words. Other Morse decoders can recover this ASCII intermediate; the HEX bytes must then be decoded as UTF-8. Copying the Morse output includes only Morse symbols, spaces, and word separators. </p>
+    <h3>03 / DOT-DASH AND 0/1</h3><p>Classic format uses <code>.</code> for dot and <code>-</code> for dash. Binary display format uses <code>0</code> for dot and <code>1</code> for dash. Spaces and word separators remain the same. <strong>Binary here is a substitution of Morse signals, not the binary representation of Unicode or ASCII.</strong> The decoder automatically accepts either notation, but rejects mixed notation.</p>
+    <h3>04 / COMPATIBILITY</h3><p>You can decode external standard Morse such as <code>.... . .-.. .-.. --- / .-- --- .-. .-.. -..</code>. Fully uppercase ASCII with digits, common punctuation, and single inter-word spaces uses native international Morse directly without any wrapper. Unicode, lowercase letters, and exact whitespace use the <code>MORSE UTF8 HEX ...</code> intermediate. Ordinary third-party Morse readers can recover that intermediate ASCII text, but cannot automatically restore Unicode. Legacy <code>MSM1</code> and <code>MSM2 UTF8 HEX</code> packets remain supported. Malformed detected packets produce explicit errors.</p>
+    <h3>05 / LOSSLESS LIMITS</h3><p>Unicode normalization, case conversion, and newline normalization are not applied to the underlying data. CRLF, LF, CR, joined emoji, and combining marks are preserved. Browsers display CRLF as LF in a textarea, but clipboard output uses retained raw text. Isolated UTF-16 surrogate code units are not valid Unicode and are rejected explicitly.</p>
+  </div>
+  <h3 data-i18n="verification">06 / 自动验证</h3><button id="dialog-run-tests" class="run-tests" data-i18n="verify">&gt; 运行编码器测试</button><div class="test-output" id="test-output" aria-live="polite"></div>
+</div></dialog>
+<script>
+'use strict';
+/* ================================================================
+   MORSE STUDIO / MSM-1 — frozen wire-format version 1
+   ASCII intermediate, 1 Morse token per ASCII symbol, ' / ' for spaces.
+   Prefix: "MSM1 " (MSM1 followed by word separator).
+   Q0=literal Q; Q1=lowercase; Q2=uppercase; Q4=Tab; Q5=LF; Q6=CR
+   Q7[D:1 decimal][L:D base36][DATA:ceil(Lbytes*8/5) RFC4648 Base32]
+   Q8[W:3|4][D:1 decimal][L:D base36][DATA:W*L base36 digits]
+   Q3/Q9 reserved; embedded Q is legal in length/payload fields.
+   ================================================================ */
+const MorseCodec = (() => {
+  const definitions = {
+    A:'.-',B:'-...',C:'-.-.',D:'-..',E:'.',F:'..-.',G:'--.',H:'....',I:'..',J:'.---',K:'-.-',L:'.-..',M:'--',N:'-.',O:'---',P:'.--.',Q:'--.-',R:'.-.',S:'...',T:'-',U:'..-',V:'...-',W:'.--',X:'-..-',Y:'-.--',Z:'--..',
+    '0':'-----','1':'.----','2':'..---','3':'...--','4':'....-','5':'.....','6':'-....','7':'--...','8':'---..','9':'----.',
+    '.':'.-.-.-',',':'--..--','?':'..--..',"'":'.----.','!':'-.-.--','/':'-..-.','(':'-.--.',')':'-.--.-','&':'.-...',':':'---...',';':'-.-.-.','=':'-...-','+':'.-.-.','-':'-....-','_':'..--.-','"':'.-..-.','$':'...-..-','@':'.--.-.'
+  };
+  const reverse = Object.fromEntries(Object.entries(definitions).map(([key,val]) => [val,key]));
+  const morseCost = s => [...s].reduce((n,c)=> n + (c===' '? 1 : (definitions[c]?.length ?? 20)) + 1,0);
+  function wire(ascii){const result=[];for(const ch of ascii){if(ch===' ')result.push('/');else{if(!definitions[ch])throw new Error('无法输出摩斯字符：'+ch);result.push(definitions[ch]);}}return result.join(' ');}
+  function tokenize(input){
+    const out=[];const re=/[^\s/]+|\//g;let match;
+    while((match=re.exec(input))!==null){const token=match[0];const position=match.index;
+      if(token==='/')out.push({type:'space',symbol:' ',pos:position});
+      else if(!/^[.-]+$/.test(token))throw new CodecError('非法摩斯符号 '+JSON.stringify(token),position);
+      else if(!reverse[token])throw new CodecError('未知摩斯码 '+token,position);
+      else out.push({type:'symbol',symbol:reverse[token],pos:position});
+    }
+    return out;
+  }
+  function directDecode(input){return tokenize(input).map(t=>t.symbol).join('');}
+  return {definitions,reverse,morseCost,wire,tokenize,directDecode};
+})();
+class CodecError extends Error{constructor(message,index=-1){super(message+(index>=0?'（位置 '+(index+1)+'）':''));this.name='CodecError';this.index=index;}}
+const UnicodeCodec = (() => {
+  const encoder=new TextEncoder(), base32='ABCDEFGHIJKLMNOPQRSTUVWXYZ234567', base36='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  function validateScalar(str){for(let i=0;i<str.length;i++){const n=str.charCodeAt(i);if(n>=0xD800&&n<=0xDBFF){const next=str.charCodeAt(i+1);if(!(next>=0xDC00&&next<=0xDFFF))throw new CodecError('存在孤立高代理项，不能无损编码',i);i++;}else if(n>=0xDC00&&n<=0xDFFF)throw new CodecError('存在孤立低代理项，不能无损编码',i);}}
+  function toBase32(bytes){let bits=0,buffer=0,out='';for(const b of bytes){buffer=(buffer<<8)|b;bits+=8;while(bits>=5){bits-=5;out+=base32[(buffer>>>bits)&31];}buffer&=(1<<bits)-1;}if(bits)out+=base32[(buffer<<(5-bits))&31];return out;}
+  function fromBase32(s,expected,pos){let bits=0,buffer=0;const output=new Uint8Array(expected);let i=0;for(const ch of s){const v=base32.indexOf(ch);if(v<0)throw new CodecError('Base32 数据包含非法字符 '+ch,pos);buffer=(buffer<<5)|v;bits+=5;while(bits>=8){bits-=8;if(i>=expected)throw new CodecError('Base32 数据长度错误',pos);output[i++]=(buffer>>>bits)&255;}buffer&=(1<<bits)-1;}if(i!==expected||buffer!==0)throw new CodecError('Base32 字节数或尾部填充位非法',pos);return output;}
+  function lengthField(n){if(!Number.isSafeInteger(n)||n<1||n>2000000)throw new CodecError('数据段长度超出安全范围');const digits=n.toString(36).toUpperCase();if(digits.length>9)throw new CodecError('长度字段过长');return digits.length.toString()+digits;}
+  function codepoints(str){validateScalar(str);return Array.from(str,c=>c.codePointAt(0));}
+  function encodeRun(str){
+    const cps=codepoints(str),utf8=encoder.encode(str);
+    const utf8Candidate='Q7'+lengthField(utf8.length)+toBase32(utf8);
+    const cpCandidate='Q84'+lengthField(cps.length)+cps.map(cp=>cp.toString(36).toUpperCase().padStart(4,'0')).join('');
+    const split=[];let j=0;
+    while(j<cps.length){const width=cps[j]<36**3?3:4;let k=j+1;while(k<cps.length && (cps[k]<36**3?3:4)===width)k++;
+      const block=cps.slice(j,k);split.push('Q8'+width+lengthField(block.length)+block.map(cp=>cp.toString(36).toUpperCase().padStart(width,'0')).join(''));j=k;}
+    const options=[utf8Candidate,cpCandidate,split.join('')];
+    let best=options[0],score=MorseCodec.morseCost(best);
+    for(let k=1;k<options.length;k++){const c=MorseCodec.morseCost(options[k]);if(c<score){best=options[k];score=c;}}
+    return best;
+  }
+  function fromUTF8(s,expected,pos){const data=fromBase32(s,expected,pos);try{return new TextDecoder('utf-8',{fatal:true}).decode(data);}catch{throw new CodecError('UTF-8 数据不合法或已损坏',pos);}}
+  function fromCodePoints(s,width,pos){let out='';for(let i=0;i<s.length;i+=width){const digits=s.slice(i,i+width);if(!/^[0-9A-Z]+$/.test(digits))throw new CodecError('Base36 数据包含非法字符',pos+i);const code=parseInt(digits,36);if(code>0x10FFFF||(code>=0xD800&&code<=0xDFFF))throw new CodecError('Unicode 码点非法 U+'+code.toString(16).toUpperCase(),pos+i);out+=String.fromCodePoint(code);}return out;}
+  return {encoder,base32,base36,validateScalar,codepoints,toBase32,fromBase32,lengthField,encodeRun,fromUTF8,fromCodePoints};
+})();
+const MSM1Codec = (() => {
+  const HEADER='MSM1 ';const DIRECT=new Set([...Object.keys(MorseCodec.definitions),' ','\r','\n','\t']);
+  function encode(text){UnicodeCodec.validateScalar(text);let payload='',mode='upper';let run='';
+    function flush(){if(run){payload+=UnicodeCodec.encodeRun(run);run='';}}
+    for(const char of text){
+      if(!DIRECT.has(char)){run+=char;continue;}
+      flush();if(char==='\t'){payload+='Q4';continue;}if(char==='\n'){payload+='Q5';continue;}if(char==='\r'){payload+='Q6';continue;}
+      const isAlpha=/^[A-Za-z]$/.test(char);
+      if(isAlpha){const next=(char===char.toLowerCase()?'lower':'upper');if(mode!==next){payload+=next==='lower'?'Q1':'Q2';mode=next;}}
+      if(char==='Q'||char==='q')payload+='Q0';else payload+=char.toUpperCase();
+    }
+    flush();return MorseCodec.wire(HEADER+payload);
+  }
+  function decode(input){const tokens=MorseCodec.tokenize(input);const chars=tokens.map(t=>t.symbol);const s=chars.join('');
+    if(chars.length>=5&&s.slice(0,3)==='MSM'&&/^[0-9]$/.test(s[3])&&s[4]===' '&&s[3]!=='1')throw new CodecError('不支持的 MSM 协议版本 MSM'+s[3],tokens[3].pos);
+    if(s.slice(0,5)!==HEADER)return {text:s,protocol:'ITU / STANDARD'};
+    let i=5,out='',lower=false;
+    const max=2000000;
+    function readChar(name){if(i>=chars.length)throw new CodecError('MSM-1 数据截断：缺少'+name,tokens[Math.max(0,i-1)]?.pos??0);return chars[i++];}
+    function readLength(){const digit=readChar('长度字段位数');if(!/^[1-9]$/.test(digit))throw new CodecError('非法长度字段位数 '+digit,tokens[i-1].pos);const width=Number(digit);let digits='';for(let j=0;j<width;j++){const c=readChar('Base36 长度字段');if(!/^[A-Z0-9]$/.test(c))throw new CodecError('非法 Base36 长度字段',tokens[i-1].pos);digits+=c;}
+      if(digits.length>1&&digits[0]==='0')throw new CodecError('Base36 长度字段不能有前导零',tokens[i-width].pos);
+      const n=parseInt(digits,36);if(!Number.isSafeInteger(n)||n<1||n>max)throw new CodecError('长度字段超过安全限制',tokens[i-1].pos);return n;}
+    function readData(n,label){if(n>chars.length-i)throw new CodecError(label+' 数据被截断，期望 '+n+' 个字符',tokens[i]?.pos??input.length);const start=i;const slice=chars.slice(i,i+n);if(slice.includes(' '))throw new CodecError(label+' 数据段包含空格分隔符',tokens[i+slice.indexOf(' ')].pos);i+=n;return {data:slice.join(''),pos:tokens[start]?.pos??input.length};}
+    while(i<chars.length){const c=readChar('正文');if(c==='Q'){
+        const command=readChar('Q 控制码');if(command==='0'){out+=lower?'q':'Q';continue;}
+        if(command==='1'){lower=true;continue;}if(command==='2'){lower=false;continue;}
+        if(command==='4'){out+='\t';continue;}if(command==='5'){out+='\n';continue;}if(command==='6'){out+='\r';continue;}
+        if(command==='7'){const len=readLength();const block=readData(Math.ceil(len*8/5),'UTF-8/Base32');out+=UnicodeCodec.fromUTF8(block.data,len,block.pos);continue;}
+        if(command==='8'){const digit=readChar('码点定宽');if(digit!=='3'&&digit!=='4')throw new CodecError('Q8 仅支持每码点 3 或 4 位',tokens[i-1].pos);const count=readLength();if(count*Number(digit)>max*4)throw new CodecError('Unicode 码点块过长',tokens[i-1].pos);const block=readData(count*Number(digit),'Unicode/Base36');out+=UnicodeCodec.fromCodePoints(block.data,Number(digit),block.pos);continue;}
+        throw new CodecError('非法或保留的 MSM-1 控制码 Q'+command,tokens[i-1].pos);
+      }
+      if(c===' ')out+=' ';
+      else if(/^[A-Z]$/.test(c))out+=lower?c.toLowerCase():c;
+      else out+=c;
+    }
+    return {text:out,protocol:'MSM-1'};
+  }
+  return {HEADER,encode,decode};
+})();
+/* ================================================================
+   MORSE UTF8 HEX / Self-describing, printable international Morse.
+   One Morse token per ASCII character; slash denotes an ASCII space.
+   Intermediate: MORSE UTF8 HEX [HEXBYTES...], grouped by Unicode
+   code point. Only Morse signals, spaces and / are copied.
+   Data is ordinary UTF-8 bytes encoded as hexadecimal, NOT a
+   universal Unicode extension to international Morse.
+   Legacy MSM2 UTF8 HEX input remains supported for migration.
+   ================================================================ */
+const MSM2Codec = (()=>{
+  const encoder=new TextEncoder(),decoder=new TextDecoder('utf-8',{fatal:true});
+  const HEADER='MORSE UTF8 HEX',LEGACY='MSM2 UTF8 HEX';
+  function encode(text){
+    UnicodeCodec.validateScalar(text);
+    // Keep each UTF-8 code point as its own HEX group. The byte sequence is
+    // identical, but shorter groups are easier to read and transcribe reliably.
+    const chunks=[];
+    for(const cp of text){
+      let hex='';for(const byte of encoder.encode(cp))hex+=byte.toString(16).toUpperCase().padStart(2,'0');
+      chunks.push(hex);
+    }
+    return MorseCodec.wire(HEADER+(chunks.length?' '+chunks.join(' '):''));
+  }
+  function decodeIntermediate(intermediate){
+    const prefix=intermediate==='MORSE'||intermediate.startsWith('MORSE ')?HEADER:LEGACY;
+    if(intermediate!==prefix&&!intermediate.startsWith(prefix+' '))throw new CodecError('Invalid UTF-8 HEX header');
+    const payload=intermediate===prefix?'':intermediate.slice(prefix.length+1);
+    // A format has only uppercase hex digits and single spaces between blocks.
+    if(payload&&!/^[0-9A-F]+(?: [0-9A-F]+)*$/.test(payload))throw new CodecError('Invalid HEX payload');
+    const segments=payload?payload.split(' '):[];
+    if(segments.some(chunk=>chunk.length%2!==0))
+      throw new CodecError('Truncated HEX byte or invalid HEX block length');
+    const hex=segments.join('');
+    if(hex.length>5000000)throw new CodecError('HEX payload exceeds the safety limit');
+    const bytes=new Uint8Array(hex.length/2);
+    for(let j=0;j<hex.length;j+=2)bytes[j/2]=parseInt(hex.slice(j,j+2),16);
+    try{return decoder.decode(bytes);}catch{throw new CodecError('Invalid UTF-8 byte sequence in HEX payload');}
+  }
+  return {HEADER,LEGACY,encode,decodeIntermediate};
+})();
+
+const SignalCodec=(()=>{
+  function normalise(input){
+    const dotdash=/[.\-]/.test(input),binary=/[01]/.test(input);
+    if(dotdash&&binary)throw new CodecError('Do not mix dot-dash and 0/1 Morse notation',Math.max(0,input.search(/[01]/)));
+    // Recognise either representation regardless of the selected presentation mode.
+    let classic=binary?input.replace(/0/g,'.').replace(/1/g,'-'):input;
+    if(/[^.\-/\s]/.test(classic))throw new CodecError('Invalid character in Morse signal',classic.search(/[^.\-/\s]/));
+    // Conventional three-or-more spaces signal an inter-word gap.
+    classic=classic.replace(/[ \t]{3,}/g,' / ');
+    return classic;
+  }
+  function render(classic,mode){return mode==='binary'?classic.replace(/\./g,'0').replace(/-/g,'1'):classic;}
+  function signalCount(morse){return (morse.match(/[.\-01]/g)||[]).length;}
+  return {normalise,render,signalCount};
+})();
+
+const MorseStudioCodec=(()=>{
+  function encode(text,mode='classic'){
+    UnicodeCodec.validateScalar(text);
+    // The universally interoperable fast path: exact uppercase ASCII Morse,
+    // only single inter-word spaces; preserve punctuation and digits.
+    // Everything else uses the explicitly self-described Unicode packet.
+    const safe=/^[A-Z0-9 .,'?!/()&:;=+\-_"$@]*$/.test(text)&&!text.includes('  ')
+      &&!/^MSM[0-9]/.test(text)&&!(text==='MORSE'||text.startsWith('MORSE '));
+    const wire=safe?MorseCodec.wire(text):MSM2Codec.encode(text);
+    return SignalCodec.render(wire,mode);
+  }
+  function decode(input){
+    const classic=SignalCodec.normalise(input);
+    const tokens=MorseCodec.tokenize(classic);
+    const mid=tokens.map(token=>token.symbol).join('');
+    // All MSM prefixes are reserved and cannot silently fall through to ordinary Morse.
+    if(/^MSM\d/.test(mid)){
+      if(mid.startsWith('MSM1 '))return MSM1Codec.decode(classic);
+      if(mid==='MSM2'||mid.startsWith('MSM2 '))return {text:MSM2Codec.decodeIntermediate(mid),protocol:'UTF-8 HEX (legacy)'};
+      throw new CodecError('Unsupported MSM version or invalid protocol header');
+    }
+    if(mid==='MORSE'||mid.startsWith('MORSE ')){
+      return {text:MSM2Codec.decodeIntermediate(mid),protocol:'UTF8 HEX'};
+    }
+    return {text:mid,protocol:'ITU / STANDARD'};
+  }
+  return {encode,decode};
+})();
+
+const I18N={
+  zh:{protocolLabel:'协议',statusLabel:'状态',local:'本地 / 离线',format:'点划格式',rainOn:'代码雨 开',rainOff:'代码雨 关',aboutButton:'协议说明 ↗',intro:'输入文字即可生成摩斯密码；输入摩斯密码即可还原原文。支持标准国际摩斯码及完整 Unicode 无损转换，所有处理均在本地完成。',workspace:'工作区',realtime:'/ 实时双向转换',copy:'复制',paste:'粘贴',clear:'清空',direction:'方向',live:'实时',auto:'自动',compatibility:'支持外部标准摩斯解码、旧版 MSM-1、UTF-8 HEX 无损还原；不执行文本规范化。',clearAll:'[ 全部清空 ]',runTests:'[ 自检 ]',pasteHint:'粘贴',telemetry:'/// 实时状态 / 诊断信息',codepoints:'UNICODE 字符',bytes:'UTF-8 字节',signals:'点划信号数',elapsed:'转换时间',detected:'检测协议',conversion:'转换状态',footer:'© MORSE STUDIO · 所有处理均在本地进行 · 无跟踪',aboutTitle:'>_ 编码格式与兼容说明',close:'关闭 ×',verification:'06 / 自动验证',verify:'> 运行编码器测试',input:'原始文本',morseInput:'摩斯输入',morseOutput:'摩斯输出',placeholderPlain:'// 输入任意文字\n// 你好，世界！ Hello 😀',placeholderMorse:'// 输入或粘贴摩斯密码\n// 支持经典与 0/1 模式',source:'[ 输入 ]',output:'[ 输出 ]',points:'字符',units:'信号',ln:'行',col:'列',encode:'编码',decode:'解码',ready:'就绪',working:'处理中',error:'错误',ok:'成功',none:'暂无输入，可以开始转换。',init:'摩斯编码器已就绪。标准 ASCII 直接编码，Unicode 使用 UTF8 HEX。',converting:'正在转换输入内容…',converted:'已转换 {chars} 个字符 / {signals} 个信号 / {protocol} / {ms} ms',errorText:'转换失败：{details}',invalid:'无效的摩斯密码或协议数据',invalidPosition:'（位置 {pos}）',copied:'已复制',copyFail:'复制失败，请选中文字并使用 Ctrl/Cmd + C。',pasteFail:'无法读取剪贴板，请使用 Ctrl/Cmd + V。',pasted:'已粘贴 {n} 个字符',clearBoth:'两个编辑器已清空。',swapped:'已交换编辑器和转换方向',changedFormat:'已切换为 {name} 格式',classicName:'经典点划',binaryName:'0 / 1',testsOk:'所有测试通过（含 Unicode、损坏数据及长文本）。',testsRun:'测试：{ok}/{total} 通过 / {ms} ms',testsFailed:'自检出现错误：{details}',langTitle:'Switch to English',rainTitle:'切换代码雨背景',aboutTitleAttr:'查看协议说明',swapTitle:'交换编辑器与转换方向',modeTitle:'点击切换点划格式',inputTitle:'原始文本编辑器',morseTitle:'摩斯密码编辑器'},
+  en:{protocolLabel:'PROTOCOL',statusLabel:'STATUS',local:'LOCAL / OFFLINE',format:'SYMBOLS',rainOn:'RAIN ON',rainOff:'RAIN OFF',aboutButton:'ABOUT ↗',intro:'Type text to generate Morse code, or enter Morse code to restore the original message. Supports international Morse and lossless Unicode conversion. Everything works offline.',workspace:'WORKSPACE',realtime:'/ LIVE TWO-WAY CONVERSION',copy:'COPY',paste:'PASTE',clear:'CLEAR',direction:'DIRECTION',live:'LIVE',auto:'AUTO',compatibility:'External standard Morse, legacy MSM-1, and lossless UTF-8 HEX supported. No text normalization.',clearAll:'[ CLEAR ALL ]',runTests:'[ SELF-TEST ]',pasteHint:'PASTE',telemetry:'/// TELEMETRY / LIVE DIAGNOSTICS',codepoints:'UNICODE CODE POINTS',bytes:'UTF-8 BYTES',signals:'MORSE SIGNALS',elapsed:'CONVERT TIME',detected:'DETECTED PROTOCOL',conversion:'CONVERSION',footer:'© MORSE STUDIO · LOCAL PROCESSING · NO TRACKING',aboutTitle:'>_ FORMAT & COMPATIBILITY',close:'CLOSE ×',verification:'06 / VERIFICATION',verify:'> RUN CODEC TESTS',input:'PLAINTEXT',morseInput:'MORSE INPUT',morseOutput:'MORSE OUTPUT',placeholderPlain:'// ENTER YOUR MESSAGE HERE...\n// Hello World!',placeholderMorse:'// TYPE OR PASTE MORSE CODE\n// DOT-DASH OR 0/1',source:'[ SOURCE ]',output:'[ OUTPUT ]',points:'CODE POINTS',units:'SIGNALS',ln:'LN',col:'COL',encode:'ENCODE',decode:'DECODE',ready:'READY',working:'PROCESSING',error:'ERROR',ok:'OK',none:'Empty buffer. Ready for input.',init:'Morse codec ready. Direct ASCII or Unicode UTF8 HEX.',converting:'Processing input…',converted:'Converted {chars} code points / {signals} signals / {protocol} / {ms} ms',errorText:'Conversion failed: {details}',invalid:'Invalid Morse or protocol data',invalidPosition:' (position {pos})',copied:'COPIED',copyFail:'Copy failed. Select the content and use Ctrl/Cmd + C.',pasteFail:'Clipboard read unavailable. Use Ctrl/Cmd + V.',pasted:'Pasted {n} characters',clearBoth:'Both editors cleared.',swapped:'Editors and conversion direction swapped',changedFormat:'Switched to {name} format',classicName:'dot-dash',binaryName:'0 / 1',testsOk:'All checks passed, including Unicode, corrupt data, and long text.',testsRun:'TESTS: {ok}/{total} PASSED / {ms} ms',testsFailed:'Self-test failed: {details}',langTitle:'切换为中文',rainTitle:'Toggle Matrix rain background',aboutTitleAttr:'Read the format specification',swapTitle:'Swap editors and conversion direction',modeTitle:'Click to toggle Morse notation',inputTitle:'Plaintext editor',morseTitle:'Morse editor'}
+};
+const I18n=(()=>{
+  let lang='zh';
+  try{const stored=localStorage.getItem('morse-studio-language');if(stored==='zh'||stored==='en')lang=stored;}catch{}
+  const t=(key,vars={})=>{let v=I18N[lang][key]??key;return String(v).replace(/\{([a-z]+)\}/gi,(_m,k)=>String(vars[k]??''));};
+  function set(next){lang=next;try{localStorage.setItem('morse-studio-language',lang);}catch{}
+    document.documentElement.lang=lang==='zh'?'zh-CN':'en';
+    document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n);});
+    document.getElementById('about-zh').hidden=lang!=='zh';document.getElementById('about-en').hidden=lang!=='en';
+    const b=document.getElementById('lang-toggle');b.textContent=lang==='zh'?'中文':'EN';b.title=t('langTitle');b.setAttribute('aria-label',t('langTitle'));
+    document.getElementById('rain-toggle').title=t('rainTitle');document.getElementById('about-btn').setAttribute('aria-label',t('aboutTitleAttr'));
+    document.getElementById('swap-btn').title=t('swapTitle');document.getElementById('swap-btn').setAttribute('aria-label',t('swapTitle'));
+    document.getElementById('signal-mode').setAttribute('aria-label',t('modeTitle'));document.getElementById('signal-mode').title=t('modeTitle');
+    document.querySelectorAll('[data-copy]').forEach(b=>b.title=t('copy'));
+    document.querySelectorAll('[data-paste]').forEach(b=>b.title=t('paste'));
+    document.querySelectorAll('[data-clear]').forEach(b=>b.title=t('clear'));
+  }
+  return {set,t,get lang(){return lang;}};
+})();
+
+const TestSuite = (()=>{
+  const baseSamples=['','HELLO WORLD','Hello World','1234567890','Hello, World!','你好，世界！','中华人民共和国','繁體中文測試','你好 Hello 123','😀','❤️','👍🏽','👨‍👩‍👧‍👦','🇨🇳',' ','    ','\t','\r\n','one\r\ntwo\r\n','\n\n\n','。，？！','e\u0301','a\u0327\u0302','한국어 日本語 Ελληνικά العربية','C++ & Q? qQQq','\0\u007f\u0080','Mixed \tspace  \r\n Emoji 🧑🏾‍🚀','Q'.repeat(101),'\udbff\udfff','🫧'.repeat(55),'abc\t\n\r def'];
+  const tests=[];const add=(name,fn)=>tests.push({name,fn});
+  const eq=(actual,expected)=>{if(actual!==expected)throw Error('Expected '+JSON.stringify(expected)+', received '+JSON.stringify(actual));};
+  const rejects=(fn)=>{let failed=false;try{fn();}catch(e){if(e instanceof CodecError)failed=true;else throw e;}if(!failed)throw Error('Expected CodecError');};
+  for(const [i,s] of baseSamples.entries()){
+    add('UTF-8 HEX Unicode roundtrip '+i,()=>{for(const mode of ['classic','binary']){const encoded=MorseStudioCodec.encode(s,mode);eq(MorseStudioCodec.decode(encoded).text,s);if(mode==='classic'&&!/^[.\-/\s]*$/.test(encoded))throw Error('Non-Morse wire format');if(mode==='binary'&&!/^[01/\s]*$/.test(encoded))throw Error('Non-binary wire format');}});
+  }
+  add('Native uppercase standard encode',()=>eq(MorseStudioCodec.encode('HELLO WORLD'),'.... . .-.. .-.. --- / .-- --- .-. .-.. -..'));
+  add('Native digits standard encode',()=>eq(MorseStudioCodec.decode(MorseStudioCodec.encode('1234567890')).text,'1234567890'));
+  add('Native punctuation standard encode',()=>eq(MorseStudioCodec.decode(MorseStudioCodec.encode('HELLO, WORLD!')).text,'HELLO, WORLD!'));
+  add('Reserved plain-text header roundtrip',()=>eq(MorseStudioCodec.decode(MorseStudioCodec.encode('MORSE UTF8 HEX')).text,'MORSE UTF8 HEX'));
+  add('External HELLO WORLD',()=>eq(MorseStudioCodec.decode('.... . .-.. .-.. --- / .-- --- .-. .-.. -..').text,'HELLO WORLD'));
+  add('External 3-space word gap',()=>eq(MorseStudioCodec.decode('.... ..   - .... . .-. .').text,'HI THERE'));
+  add('Standard punctuation',()=>eq(MorseStudioCodec.decode('.-.-.- --..-- ..--..').text,'.,?'));
+  add('Binary ordinary Morse',()=>eq(MorseStudioCodec.decode('0000 00 / 1 0000 0 010 0').text,'HI THERE'));
+  add('Explicit ASCII intermediate',()=>eq(MorseCodec.directDecode(MorseStudioCodec.encode('你好')),'MORSE UTF8 HEX E4BDA0 E5A5BD'));
+  add('Empty Unicode packet',()=>eq(MorseStudioCodec.decode(MorseStudioCodec.encode('')).text,''));
+  add('Malformed new HEX header',()=>rejects(()=>MorseStudioCodec.decode(MorseCodec.wire('MORSE UTF8 BAD AA'))));
+  add('Malformed truncated HEX',()=>rejects(()=>MorseStudioCodec.decode(MorseCodec.wire('MORSE UTF8 HEX ABC'))));
+  add('Malformed non-HEX',()=>rejects(()=>MorseStudioCodec.decode(MorseCodec.wire('MORSE UTF8 HEX G2'))));
+  add('Malformed invalid UTF-8',()=>rejects(()=>MorseStudioCodec.decode(MorseCodec.wire('MORSE UTF8 HEX FF'))));
+  add('Unsupported MSM3 version',()=>rejects(()=>MorseStudioCodec.decode(MorseCodec.wire('MSM3 UTF8 HEX 41'))));
+  add('Unknown Morse signal',()=>rejects(()=>MorseStudioCodec.decode('........')));
+  add('Illegal character',()=>rejects(()=>MorseStudioCodec.decode('..-x')));
+  add('Mixed Morse notations',()=>rejects(()=>MorseStudioCodec.decode('.- 01')));
+  add('Bad surrogate encoding',()=>rejects(()=>MorseStudioCodec.encode('\ud800')));
+  add('Legacy UTF-8 HEX decoded',()=>eq(MorseStudioCodec.decode(MorseCodec.wire('MORSE UTF8 HEX E4BDA0E5A5BD')).text,'你好'));
+  add('Self describing header',()=>eq(MorseCodec.directDecode(MorseStudioCodec.encode('A😀')),'MORSE UTF8 HEX 41 F09F9880'));
+  add('Per-code-point HEX grouping',()=>{const mid=MorseCodec.directDecode(MorseStudioCodec.encode('abcdefghi'));eq(mid,'MORSE UTF8 HEX 61 62 63 64 65 66 67 68 69');eq(MorseStudioCodec.decode(MorseStudioCodec.encode('abcdefghi')).text,'abcdefghi');});
+  add('Clean classic copy payload',()=>{const wire=MorseStudioCodec.encode('我在这里','classic');if(!/^[.\- /]+$/.test(wire))throw Error('Copy payload contains non-Morse characters');eq(MorseCodec.directDecode(wire),'MORSE UTF8 HEX E68891 E59CA8 E8BF99 E9878C');});
+  add('Clean binary copy payload',()=>{const wire=MorseStudioCodec.encode('我在这里','binary');if(!/^[01 /]+$/.test(wire))throw Error('Copy payload contains non-Morse characters');eq(MorseStudioCodec.decode(wire).text,'我在这里');});
+  add('No instruction appended to standard Morse',()=>eq(MorseStudioCodec.encode('HELLO'),'.... . .-.. .-.. ---'));
+  add('Standard digit 9',()=>eq(MorseStudioCodec.decode('----.').text,'9'));
+  add('Binary digit 9',()=>eq(MorseStudioCodec.decode('11110').text,'9'));
+  add('Legacy MSM-1 decoded',()=>{const data='你好 Hello\r\n👍🏽';eq(MorseStudioCodec.decode(MSM1Codec.encode(data)).text,data);});
+  add('10k+ mixed codepoint stress',()=>{const s=('中😀Aq\t\r\n é𝄞').repeat(1250);eq(MorseStudioCodec.decode(MorseStudioCodec.encode(s)).text,s);});
+  add('Format conversion reversible',()=>{const raw=MorseStudioCodec.encode('case B');const zero=SignalCodec.render(raw,'binary');eq(SignalCodec.normalise(zero),raw);eq(MorseStudioCodec.decode(zero).text,'case B');});
+  add('CRLF exact bytes',()=>{const s='\r\n\n\r';eq(MorseStudioCodec.decode(MorseStudioCodec.encode(s)).text,s);});
+  add('Version 1 invalid control',()=>rejects(()=>MorseStudioCodec.decode(MorseCodec.wire('MSM1 Q9'))));
+  function run(){const start=performance.now(),failures=[];for(const test of tests){try{test.fn();}catch(error){failures.push(test.name+': '+error.message);}}return {passed:tests.length-failures.length,total:tests.length,failures,elapsed:performance.now()-start};}
+  return {run};
+})();
+/* ================================================================
+   ConversionController: raw text preservation + live two-way editor
+   ================================================================ */
+const UIController=(()=>{
+  const $=id=>document.getElementById(id);
+  const areas=[$('area-0'),$('area-1')],editors=[$('editor-0'),$('editor-1')];
+  let roles=['plain','morse'],raw=['',''],active=0,format='classic',timer=0,composing=false;
+  let toastTimer=0,lastProtocol='UTF8 HEX',lastElapsed=0,lastStatus='ok',statusKey='init',statusArgs={},lastTest=null;
+  const norm=text=>text.replace(/\r\n?/g,'\n');
+  function viewToRawIndex(str,index){let v=0,i=0;while(i<str.length&&v<index){if(str[i]==='\r'&&str[i+1]==='\n')i+=2;else i++;v++;}return i;}
+  function rawFromEdit(previous,nextView){
+    const view=norm(previous);if(view===nextView)return previous;
+    let prefix=0,suffix=0;
+    while(prefix<view.length&&prefix<nextView.length&&view[prefix]===nextView[prefix])prefix++;
+    while(suffix<view.length-prefix&&suffix<nextView.length-prefix&&view[view.length-1-suffix]===nextView[nextView.length-1-suffix])suffix++;
+    return previous.slice(0,viewToRawIndex(previous,prefix))+nextView.slice(prefix,nextView.length-suffix)+previous.slice(viewToRawIndex(previous,view.length-suffix));
+  }
+  function setSlot(i,s){raw[i]=s;const shown=roles[i]==='plain'?norm(s):s;if(areas[i].value!==shown)areas[i].value=shown;updatePosition(i);}
+  function updatePosition(i){const a=areas[i],lines=a.value.slice(0,a.selectionStart).split('\n');$('pos-'+i).textContent=I18n.t('ln')+' '+lines.length+' : '+I18n.t('col')+' '+Array.from(lines.at(-1)).length;}
+  function morseIndex(){return roles.indexOf('morse');}
+  function plainIndex(){return roles.indexOf('plain');}
+  function status(type,key,vars={}){lastStatus=type;statusKey=key;statusArgs=vars;paintStatus();}
+  function paintStatus(){
+    $('console').dataset.status=lastStatus;$('console-message').textContent=I18n.t(statusKey,statusArgs);
+    const tag=I18n.t(lastStatus==='error'?'error':lastStatus==='working'?'working':lastStatus==='ok'?'ok':'ready');
+    $('stat-result').textContent=tag;$('stat-result').className='value '+(lastStatus==='error'?'error':'ok');
+    $('live-label').textContent=tag;$('top-ready').textContent=tag;
+  }
+  function renderLabels(){
+    for(let i=0;i<2;i++){
+      const isMorse=roles[i]==='morse';
+      $('title-'+i).textContent=isMorse?I18n.t(i===active?'morseInput':'morseOutput'):I18n.t('input');
+      areas[i].placeholder=I18n.t(isMorse?'placeholderMorse':'placeholderPlain');
+      areas[i].setAttribute('aria-label',I18n.t(isMorse?'morseTitle':'inputTitle'));
+      editors[i].dataset.role=roles[i];
+      updatePosition(i);
+    }
+  }
+  function updateStats(elapsed=lastElapsed){
+    lastElapsed=elapsed;
+    const text=raw[plainIndex()],morse=raw[morseIndex()];
+    let bytes;
+    try{UnicodeCodec.validateScalar(text);bytes=UnicodeCodec.encoder.encode(text).length.toLocaleString();}catch{bytes=I18n.t('error');}
+    $('stat-chars').textContent=Array.from(text).length.toLocaleString();
+    $('stat-bytes').textContent=bytes;$('stat-signals').textContent=SignalCodec.signalCount(morse).toLocaleString();
+    $('stat-time').textContent=elapsed.toFixed(2)+' ms';$('stat-protocol').textContent=lastProtocol;
+    for(let i=0;i<2;i++){
+      $('count-'+i).textContent=(roles[i]==='plain'?Array.from(raw[i]).length:SignalCodec.signalCount(raw[i])).toLocaleString()+' '+I18n.t(roles[i]==='plain'?'points':'units');
+      $('state-'+i).textContent=I18n.t(i===active?'source':'output');
+    }
+    $('direction-name').textContent=I18n.t(roles[active]==='plain'?'encode':'decode');
+    $('direction-arrow').textContent=active===0?'→':'←';
+    renderLabels();
+  }
+  function readableError(e){
+    let details=e instanceof Error?e.message:String(e);
+    const pos=e.index;
+    // Remove old wire decoder's Chinese position suffix; the UI adds its own.
+    details=details.replace(/（位置\s*\d+）/g,'');
+    if(I18n.lang==='en'){
+      if(/[\u3400-\u9fff]/.test(details))details=I18n.t('invalid');
+    }else{
+      const chinese={
+        'Missing MSM2 header':'缺少 UTF-8 HEX 协议头',
+        'Invalid UTF-8 HEX header':'UTF8 HEX 数据头不完整或无效',
+        'Unexpected word separator in HEX data':'HEX 数据段不允许空格或词分隔符',
+        'Invalid HEX payload':'HEX 数据段存在非法字符或分隔符',
+        'Truncated HEX byte or invalid HEX block length':'HEX 字节或数据分组被截断',
+        'HEX payload exceeds the safety limit':'HEX 数据长度超过安全限制',
+        'Invalid UTF-8 byte sequence in HEX payload':'HEX 数据不是有效的 UTF-8 字节序列',
+        'Do not mix dot-dash and 0/1 Morse notation':'不能混合经典点划和 0/1 信号',
+        'Invalid character in Morse signal':'摩斯码中存在非法字符',
+        'Unsupported MSM version or invalid protocol header':'不支持的 MSM 版本或无效的协议头'
+      };
+      details=chinese[details]||details;
+    }
+    if(pos>=0)details+=I18n.t('invalidPosition',{pos:pos+1});
+    return details;
+  }
+  function convert(){
+    clearTimeout(timer);timer=0;
+    const other=1-active,source=raw[active],start=performance.now();
+    if(!source){setSlot(other,'');lastProtocol='—';updateStats(performance.now()-start);status('ok','none');return;}
+    try{
+      if(roles[active]==='plain'){
+        setSlot(other,MorseStudioCodec.encode(source,format));lastProtocol=/^[A-Z0-9 .,'?!\/()&:;=+\-_\"$@]*$/.test(source)&&!source.includes('  ')&&!/^MSM[0-9]/.test(source)&&!(source==='MORSE'||source.startsWith('MORSE '))?'ITU / STANDARD':'UTF8 HEX';
+      }else{
+        const result=MorseStudioCodec.decode(source);setSlot(other,result.text);lastProtocol=result.protocol;
+      }
+      updateStats(performance.now()-start);
+      status('ok','converted',{chars:Array.from(raw[plainIndex()]).length.toLocaleString(),signals:SignalCodec.signalCount(raw[morseIndex()]).toLocaleString(),protocol:lastProtocol,ms:lastElapsed.toFixed(2)});
+    }catch(error){setSlot(other,'');lastProtocol='—';updateStats(performance.now()-start);status('error','errorText',{details:readableError(error)});}
+  }
+  function schedule(){clearTimeout(timer);status('working','converting');timer=setTimeout(convert,raw[active].length>10000?105:25);}
+  function onInput(i){raw[i]=roles[i]==='plain'?rawFromEdit(raw[i],areas[i].value):areas[i].value;active=i;updateStats();if(!composing)schedule();}
+  function pasteRaw(i,text){
+    active=i;const a=areas[i],start=a.selectionStart,end=a.selectionEnd,existing=raw[i];
+    if(roles[i]==='plain'){
+      const b=viewToRawIndex(existing,start),e=viewToRawIndex(existing,end);
+      raw[i]=existing.slice(0,b)+text+existing.slice(e);
+      a.setRangeText(norm(text),start,end,'end');
+    }else{raw[i]=existing.slice(0,start)+text+existing.slice(end);a.setRangeText(text,start,end,'end');}
+    a.focus();updateStats();schedule();
+  }
+  function toast(msg,bad=false){const t=$('toast');t.textContent=msg;t.className='toast show'+(bad?' error':'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2300);}
+  async function writeClipboard(text){
+    try{if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(text);return true;}}catch{}
+    const temp=document.createElement('textarea');temp.value=text;temp.style.cssText='position:fixed;left:-10000px;top:0;opacity:0';document.body.appendChild(temp);temp.focus();temp.select();let ok=false;
+    try{ok=!!document.execCommand('copy');}catch{}finally{temp.remove();}
+    return ok;
+  }
+  async function copy(i,btn){
+    const ok=await writeClipboard(raw[i]);
+    if(!ok){toast(I18n.t('copyFail'),true);return;}
+    toast(I18n.t('copied'));
+    btn.dataset.flash='true';btn.textContent=I18n.t('copied');
+    setTimeout(()=>{btn.dataset.flash='false';btn.textContent=I18n.t('copy');},1200);
+  }
+  async function paste(i){
+    if(!navigator.clipboard?.readText){toast(I18n.t('pasteFail'),true);return;}
+    try{const text=await navigator.clipboard.readText();pasteRaw(i,text);toast(I18n.t('pasted',{n:Array.from(text).length}));}catch{toast(I18n.t('pasteFail'),true);}
+  }
+  function clear(i){setSlot(i,'');active=i;convert();areas[i].focus();}
+  function clearAll(){clearTimeout(timer);setSlot(0,'');setSlot(1,'');active=plainIndex();lastProtocol='ITU / STANDARD';updateStats(0);status('ok','clearBoth');}
+  function swap(){
+    clearTimeout(timer);
+    [raw[0],raw[1]]=[raw[1],raw[0]];[roles[0],roles[1]]=[roles[1],roles[0]];
+    active=1-active; // The active source follows its content to the opposite editor.
+    for(let i=0;i<2;i++)setSlot(i,raw[i]);
+    convert();areas[active].focus();toast(I18n.t('swapped'));
+  }
+  function paintFormatButton(){
+    const b=$('signal-mode');
+    $('signal-current').textContent=format==='binary'?'0 / 1':'· —';
+    b.setAttribute('aria-pressed',String(format==='binary'));
+    b.setAttribute('aria-label',I18n.t('modeTitle')+' ('+(format==='binary'?'0 / 1':'· —')+')');
+    b.title=I18n.t('modeTitle');
+  }
+  function switchFormat(next){
+    if(next===format)return;
+    const i=morseIndex();
+    if(raw[i]){
+      try{raw[i]=SignalCodec.render(SignalCodec.normalise(raw[i]),next);setSlot(i,raw[i]);}catch{/* Preserve malformed user input and show its actual error. */}
+    }
+    format=next;try{localStorage.setItem('morse-studio-signals',next);}catch{}
+    paintFormatButton();convert();toast(I18n.t('changedFormat',{name:I18n.t(next==='binary'?'binaryName':'classicName')}));
+  }
+  function switchLanguage(){
+    I18n.set(I18n.lang==='zh'?'en':'zh');
+    $('rain-toggle').textContent=I18n.t(MatrixRainRenderer.enabled?'rainOn':'rainOff');
+    // A toast may still contain text from the previous language.
+    clearTimeout(toastTimer);$('toast').className='toast';$('toast').textContent='';
+    if(lastStatus==='error'&&/[\u3400-\u9fff]/.test(statusArgs.details||''))statusArgs={...statusArgs,details:I18n.t('invalid')};
+    updateStats();paintStatus();paintFormatButton();
+    if(lastTest)renderTestOutput(lastTest);
+  }
+  function renderTestOutput(result){
+    $('test-output').textContent=I18n.t('testsRun',{ok:result.passed,total:result.total,ms:result.elapsed.toFixed(1)})+'\n'+(result.failures.length?result.failures.map(s=>'[FAIL] '+s).join('\n'):I18n.t('testsOk'));
+  }
+  function runTests(showDialog=false,silent=false){
+    if(showDialog)$('about').showModal();
+    const result=TestSuite.run();lastTest=result;renderTestOutput(result);
+    if(!silent||result.failures.length)toast(I18n.t('testsRun',{ok:result.passed,total:result.total,ms:result.elapsed.toFixed(1)}),result.failures.length>0);
+    if(result.failures.length)status('error','testsFailed',{details:result.failures.join(' | ')});
+    return result;
+  }
+  function init(){
+    const langSelect=$('lang-toggle');langSelect.addEventListener('click',switchLanguage);
+    try{const f=localStorage.getItem('morse-studio-signals');if(f==='binary')format='binary';}catch{}
+    paintFormatButton();
+    $('signal-mode').addEventListener('click',()=>switchFormat(format==='classic'?'binary':'classic'));
+    areas.forEach((a,i)=>{
+      a.addEventListener('input',()=>onInput(i));a.addEventListener('click',()=>updatePosition(i));a.addEventListener('keyup',()=>updatePosition(i));
+      a.addEventListener('focus',()=>{active=i;updateStats();});
+      a.addEventListener('compositionstart',()=>composing=true);
+      a.addEventListener('compositionend',()=>{composing=false;onInput(i);});
+      a.addEventListener('paste',e=>{const text=e.clipboardData?.getData('text/plain');if(text!=null){e.preventDefault();pasteRaw(i,text);}});
+      a.addEventListener('keydown',e=>{if(e.key==='Tab'&&!e.shiftKey){e.preventDefault();pasteRaw(i,'\t');}});
+    });
+    document.querySelectorAll('[data-copy]').forEach(b=>b.addEventListener('click',()=>copy(Number(b.dataset.copy),b)));
+    document.querySelectorAll('[data-paste]').forEach(b=>b.addEventListener('click',()=>paste(Number(b.dataset.paste))));
+    document.querySelectorAll('[data-clear]').forEach(b=>b.addEventListener('click',()=>clear(Number(b.dataset.clear))));
+    $('clear-all').addEventListener('click',clearAll);$('swap-btn').addEventListener('click',swap);
+    $('about-btn').addEventListener('click',()=>$('about').showModal());$('close-about').addEventListener('click',()=>$('about').close());
+    $('about').addEventListener('click',e=>{if(e.target===$('about'))$('about').close();});
+    $('test-btn').addEventListener('click',()=>runTests(true));$('dialog-run-tests').addEventListener('click',()=>runTests(false));
+    I18n.set(I18n.lang);updateStats(0);status('ok','init');$('test-output').textContent='—';
+    setTimeout(()=>{const r=runTests(false,true);if(r.failures.length)console.error('Morse Studio self tests failed',r.failures);},220);
+  }
+  return {init,test:()=>runTests(false),getState:()=>({roles:[...roles],raw:[...raw],active,format,lang:I18n.lang}),setLanguage:(lang)=>{I18n.set(lang);updateStats();paintStatus();paintFormatButton();},setFormat:switchFormat};
+})();
+
+/* ================================================================
+   Matrix digital rain: tightly spaced streams, persistent glyph trails,
+   bright leaders, fixed alphanumeric streams, 7x drift, 30fps capped.
+   ================================================================ */
+const MatrixRainRenderer=(()=>{
+  const canvas=document.getElementById('rain'),ctx=canvas.getContext('2d',{alpha:false});
+  const glyphs=[...'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'];
+  const motion=matchMedia('(prefers-reduced-motion: reduce)');
+  const RAIN_SPEED_MULTIPLIER=7;
+  let enabled=true,raf=0,streams=[],w=0,h=0,unit=13,oldTime=0,lastDraw=0;
+  const random=(a,b)=>a+Math.random()*(b-a),pick=()=>glyphs[Math.floor(Math.random()*glyphs.length)];
+  function newStream(x,initial){return {x,y:initial?random(0,h):random(-h*.7,-unit),speed:random(.62,1.7),depth:random(.47,1),trail:Math.round(random(16,43)),letters:Array.from({length:48},pick),twinkle:random(0,6.28)};}
+  function resize(){
+    const dpr=Math.min(devicePixelRatio||1,1.45);
+    w=Math.max(1,innerWidth);h=Math.max(1,innerHeight);
+    canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    unit=w<740?15:13;streams=[];
+    for(let x=0;x<w;x+=unit)streams.push(newStream(x,true));
+    ctx.fillStyle='#000';ctx.fillRect(0,0,w,h);
+  }
+  function render(staticFrame=false,dt=33){
+    ctx.globalAlpha=1;ctx.fillStyle='#000';ctx.fillRect(0,0,w,h);
+    ctx.textBaseline='top';ctx.font=(unit-1)+'px ui-monospace, SFMono-Regular, Menlo, monospace';
+    for(const stream of streams){
+      if(!staticFrame)stream.y+=dt*.0023*RAIN_SPEED_MULTIPLIER*stream.speed*unit;
+      const y=stream.y;
+      for(let j=stream.trail;j>=0;j--){
+        const row=y-j*unit;if(row<-unit||row>h+unit)continue;
+        const fade=Math.pow(1-j/(stream.trail+1),1.65);
+        ctx.globalAlpha=Math.min(.98,fade*(.52+.43*stream.depth));
+        ctx.fillStyle=j===0?'#dbffe2':j<3?'#8cff9f':j<7?'#37eb60':'#16ae37';
+        ctx.fillText(stream.letters[j%48],stream.x,row);
+      }
+      if(!staticFrame){
+        if(stream.y-stream.trail*unit>h)Object.assign(stream,newStream(stream.x,false));
+      }
+    }
+    ctx.globalAlpha=1;
+  }
+  function frame(time){
+    if(!enabled||document.hidden||motion.matches)return;
+    raf=requestAnimationFrame(frame);
+    if(time-lastDraw<32)return;
+    const dt=Math.min(60,time-oldTime||32);oldTime=time;lastDraw=time;
+    render(false,dt);
+  }
+  function stop(){cancelAnimationFrame(raf);raf=0;}
+  function start(){stop();lastDraw=0;oldTime=0;
+    canvas.style.display=enabled?'block':'none';
+    if(!enabled)return;
+    if(motion.matches)render(true);else if(!document.hidden)raf=requestAnimationFrame(frame);
+  }
+  function init(){
+    resize();start();
+    const toggle=document.getElementById('rain-toggle');
+    function sync(){toggle.textContent=I18n.t(enabled?'rainOn':'rainOff');toggle.setAttribute('aria-pressed',String(enabled));}
+    toggle.addEventListener('click',()=>{enabled=!enabled;sync();start();});sync();
+    addEventListener('resize',()=>{resize();start();},{passive:true});
+    document.addEventListener('visibilitychange',()=>{if(document.hidden)stop();else start();});
+    motion.addEventListener?.('change',start);
+  }
+  return {init,get enabled(){return enabled;}};
+})();
+
+window.MorseStudio=Object.freeze({
+  encode:MorseStudioCodec.encode,
+  decode:MorseStudioCodec.decode,
+  standardDecode:input=>MorseCodec.directDecode(SignalCodec.normalise(input)),
+  legacyEncode:MSM1Codec.encode,
+  test:TestSuite.run,
+  getState:UIController.getState,
+  setLanguage:UIController.setLanguage,
+  setFormat:UIController.setFormat
+});
+UIController.init();MatrixRainRenderer.init();
+
+</script>
+</body>
+</html>
